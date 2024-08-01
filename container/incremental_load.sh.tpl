@@ -138,6 +138,8 @@ function import_config() {
 
   cd "${tmp_dir}"
 
+  echo ">> cd"
+
   # Docker elides layer reads from the tarball when it
   # already has a copy of the layer with the same basis
   # as it has within the tarball.  This means that once
@@ -157,6 +159,8 @@ function import_config() {
     DIFF_IDS+=("\"sha256:${diff_id}\"")
     ALL_QUOTED+=("\"${diff_id}.tar\"")
   done
+
+  echo ">> diff_id"
 
   # Starting from our legacy diffbase, figure out which
   # additional layers the Docker daemon already has.
@@ -178,6 +182,8 @@ function import_config() {
     shift 2
   done
 
+  echo ">> docker already has"
+
   # Set up the list of layers we actually need to load,
   # from the cut-off established above.
   MISSING=()
@@ -197,6 +203,8 @@ function import_config() {
     fi
   done
 
+  echo ">> need to load"
+
   cp "${name}" config.json
   cat > manifest.json <<EOF
 [{
@@ -208,10 +216,14 @@ EOF
 
   MISSING+=("config.json" "manifest.json")
 
+  echo ">> create json"
+
   # We minimize reads / writes by symlinking the layers above
   # and then streaming exactly the layers we've established are
   # needed into the Docker daemon.
   tar cPh "${MISSING[@]}" | "${DOCKER}" ${DOCKER_FLAGS} load
+
+  echo ">> tar finish"
 }
 
 function tag_layer() {
